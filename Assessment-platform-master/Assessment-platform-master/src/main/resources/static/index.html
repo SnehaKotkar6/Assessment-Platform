@@ -1,0 +1,2520 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <title>Assessment Platform</title>
+    <!-- Font Awesome 6 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <!-- Monaco Editor CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/monaco-editor@0.45.0/min/vs/loader.js"></script>
+    <style>
+        :root {
+            --bg-body: #0a0e1a;
+            --bg-sidebar: #0d1117;
+            --bg-card: #151b28;
+            --bg-card-hover: #1c2333;
+            --bg-input: #0d1117;
+            --bg-table-hover: rgba(59,130,246,0.04);
+            --bg-table-header: #0d1117;
+            --text-primary: #e8edf5;
+            --text-secondary: #8b95a8;
+            --text-muted: #5b6678;
+            --border: #1e293b;
+            --border-light: #2d3a4d;
+            --primary: #3b82f6;
+            --primary-hover: #60a5fa;
+            --primary-glow: rgba(59,130,246,0.25);
+            --secondary: #2d3748;
+            --secondary-hover: #3d4a5d;
+            --success: #22c55e;
+            --success-bg: rgba(34,197,94,0.12);
+            --success-text: #6ee7b7;
+            --danger: #ef4444;
+            --danger-bg: rgba(239,68,68,0.12);
+            --danger-text: #fca5a5;
+            --warning: #f59e0b;
+            --warning-bg: rgba(245,158,11,0.12);
+            --warning-text: #fcd34d;
+            --sidebar-active-bg: rgba(59,130,246,0.08);
+            --sidebar-active-border: #3b82f6;
+            --radius-sm: 8px;
+            --radius-md: 12px;
+            --radius-lg: 16px;
+            --shadow: 0 1px 3px rgba(0,0,0,0.3), 0 1px 2px rgba(0,0,0,0.2);
+            --shadow-md: 0 4px 6px rgba(0,0,0,0.3), 0 2px 4px rgba(0,0,0,0.2);
+            --shadow-lg: 0 10px 40px rgba(0,0,0,0.5);
+            --gradient-start: #0a0e1a;
+            --gradient-end: #151b28;
+        }
+
+        * { margin:0; padding:0; box-sizing:border-box; font-family:'Inter','Segoe UI',system-ui,-apple-system,sans-serif; }
+
+        body {
+            background: var(--bg-body);
+            min-height: 100vh;
+            color: var(--text-primary);
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* Animations */
+        @keyframes fadeIn { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
+        @keyframes slideIn { from{opacity:0;transform:translateX(-20px)} to{opacity:1;transform:translateX(0)} }
+        @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.5} }
+        @keyframes countUp { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+        @keyframes shimmer { 0%{background-position:-200% 0} 100%{background-position:200% 0} }
+        @keyframes spin { 0%{transform:rotate(0deg)} 100%{transform:rotate(360deg)} }
+        @keyframes scaleIn { from{transform:scale(0.95);opacity:0} to{transform:scale(1);opacity:1} }
+
+        .page.active { animation: fadeIn 0.3s ease forwards; }
+
+        /* Sidebar */
+        .sidebar {
+            width: 260px;
+            background: var(--bg-sidebar);
+            color: var(--text-primary);
+            position: fixed;
+            height: 100vh;
+            padding: 0;
+            left: 0;
+            top: 0;
+            border-right: 1px solid var(--border);
+            z-index: 100;
+            display: flex;
+            flex-direction: column;
+            transition: transform 0.3s ease;
+        }
+
+        .sidebar-header {
+            padding: 24px 20px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .sidebar-header .logo-icon {
+            width: 36px; height: 36px;
+            background: linear-gradient(135deg,var(--primary),#6366f1);
+            border-radius: 10px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 18px; color: #fff; flex-shrink: 0;
+        }
+
+        .sidebar-header h2 {
+            font-size: 16px;
+            font-weight: 700;
+            letter-spacing: -0.3px;
+            color: var(--text-primary);
+        }
+
+        .sidebar-header .subtitle {
+            font-size: 11px;
+            color: var(--text-muted);
+            margin-top: 1px;
+        }
+
+        .sidebar-nav {
+            flex: 1;
+            padding: 12px 10px;
+            overflow-y: auto;
+        }
+
+        .nav-section-title {
+            padding: 8px 14px;
+            font-size: 10px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-muted);
+            margin-top: 8px;
+        }
+
+        .menu-item {
+            padding: 11px 14px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: var(--text-secondary);
+            font-size: 14px;
+            border-radius: 8px;
+            margin-bottom: 2px;
+            position: relative;
+        }
+
+        .menu-item i {
+            width: 20px;
+            text-align: center;
+            font-size: 15px;
+            flex-shrink: 0;
+        }
+
+        .menu-item:hover {
+            background: var(--sidebar-active-bg);
+            color: var(--text-primary);
+        }
+
+        .menu-item.active {
+            background: var(--sidebar-active-bg);
+            color: var(--primary);
+            font-weight: 500;
+        }
+
+        .menu-item.active::before {
+            content: '';
+            position: absolute;
+            left: -10px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 3px;
+            height: 20px;
+            background: var(--primary);
+            border-radius: 0 3px 3px 0;
+        }
+
+        .sidebar-footer {
+            padding: 16px 14px;
+            border-top: 1px solid var(--border);
+        }
+
+        .sidebar-footer .menu-item {
+            color: var(--text-muted);
+            font-size: 13px;
+        }
+
+        .sidebar-footer .menu-item:hover {
+            color: var(--danger);
+            background: var(--danger-bg);
+        }
+
+        /* Sidebar Toggle (Mobile) */
+        .sidebar-toggle {
+            display: none;
+            position: fixed;
+            top: 16px; left: 16px;
+            z-index: 200;
+            width: 40px; height: 40px;
+            border-radius: 10px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            color: var(--text-primary);
+            font-size: 18px;
+            cursor: pointer;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .sidebar-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.6);
+            z-index: 99;
+        }
+
+        /* Main Content */
+        .main-content {
+            margin-left: 260px;
+            padding: 32px;
+            min-height: 100vh;
+            transition: margin-left 0.3s ease;
+        }
+
+        /* Header */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 32px;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .header h1 {
+            color: var(--text-primary);
+            font-size: 26px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .user-info {
+            background: var(--bg-card);
+            padding: 10px 18px;
+            border-radius: var(--radius-sm);
+            box-shadow: var(--shadow);
+            color: var(--text-secondary);
+            border: 1px solid var(--border);
+            font-size: 13px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .user-info i {
+            color: var(--primary);
+            font-size: 14px;
+        }
+
+        .user-info span {
+            color: var(--text-primary);
+            font-weight: 600;
+        }
+
+        /* Dashboard Cards */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 20px;
+            margin-bottom: 32px;
+        }
+
+        .stat-card {
+            background: var(--bg-card);
+            padding: 24px;
+            border-radius: var(--radius-md);
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border);
+            transition: all 0.25s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--primary), transparent);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .stat-card:hover::before { opacity: 1; }
+
+        .stat-card:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--shadow-md), 0 0 30px rgba(59,130,246,0.08);
+            border-color: var(--border-light);
+        }
+
+        .stat-card-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 16px;
+        }
+
+        .stat-card h3 {
+            color: var(--text-secondary);
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            font-weight: 600;
+        }
+
+        .stat-icon {
+            width: 40px; height: 40px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            flex-shrink: 0;
+        }
+
+        .stat-icon.blue { background: rgba(59,130,246,0.12); color: #60a5fa; }
+        .stat-icon.green { background: rgba(34,197,94,0.12); color: #4ade80; }
+        .stat-icon.red { background: rgba(239,68,68,0.12); color: #f87171; }
+        .stat-icon.purple { background: rgba(139,92,246,0.12); color: #a78bfa; }
+
+        .stat-card .number {
+            font-size: 32px;
+            font-weight: 800;
+            color: var(--text-primary);
+            letter-spacing: -1px;
+            line-height: 1;
+        }
+
+        .stat-card .stat-footer {
+            margin-top: 8px;
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        /* Tables */
+        .table-container {
+            background: var(--bg-card);
+            border-radius: var(--radius-md);
+            box-shadow: var(--shadow);
+            overflow: hidden;
+            border: 1px solid var(--border);
+            animation: fadeIn 0.3s ease;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 14px 18px;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+            font-size: 14px;
+        }
+
+        th {
+            background: var(--bg-table-header);
+            font-weight: 600;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            font-size: 11px;
+            letter-spacing: 0.8px;
+        }
+
+        td { color: var(--text-primary); }
+
+        tbody tr {
+            transition: background 0.15s ease;
+        }
+
+        tbody tr:hover {
+            background: var(--bg-table-hover);
+        }
+
+        tbody tr:last-child td { border-bottom: none; }
+
+        /* Buttons */
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 600;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            letter-spacing: 0.2px;
+        }
+
+        .btn i { font-size: 13px; }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-hover);
+            box-shadow: 0 0 24px var(--primary-glow);
+            transform: translateY(-1px);
+        }
+
+        .btn-secondary {
+            background: var(--secondary);
+            color: var(--text-primary);
+        }
+
+        .btn-secondary:hover {
+            background: var(--secondary-hover);
+            transform: translateY(-1px);
+        }
+
+        .btn-success {
+            background: var(--success);
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #16a34a;
+            box-shadow: 0 0 20px rgba(34,197,94,0.25);
+            transform: translateY(-1px);
+        }
+
+        .btn-danger {
+            background: var(--danger);
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #dc2626;
+            box-shadow: 0 0 20px rgba(239,68,68,0.25);
+            transform: translateY(-1px);
+        }
+
+        .btn-sm { padding: 6px 12px; font-size: 12px; }
+
+        /* Forms */
+        .form-container {
+            background: var(--bg-card);
+            padding: 32px;
+            border-radius: var(--radius-md);
+            box-shadow: var(--shadow);
+            max-width: 720px;
+            border: 1px solid var(--border);
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .form-grid .full-width { grid-column: 1 / -1; }
+
+        .form-group { margin-bottom: 20px; }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: 500;
+            color: var(--text-secondary);
+            font-size: 13px;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 11px 14px;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            font-size: 14px;
+            background: var(--bg-input);
+            color: var(--text-primary);
+            transition: all 0.2s ease;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            border-color: var(--primary);
+            outline: none;
+            box-shadow: 0 0 0 3px var(--primary-glow);
+        }
+
+        .form-group input::placeholder,
+        .form-group textarea::placeholder {
+            color: var(--text-muted);
+            font-size: 13px;
+        }
+
+        .form-group select option {
+            background: var(--bg-card);
+            color: var(--text-primary);
+        }
+
+        .form-group textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        .form-group input[type="checkbox"] {
+            width: auto;
+            accent-color: var(--primary);
+        }
+
+        .test-case-row {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+            align-items: center;
+            background: var(--bg-input);
+            padding: 10px 12px;
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border);
+        }
+
+        .test-case-row input { flex: 1; }
+
+        .test-case-row input[type="checkbox"] {
+            width: auto; flex: none;
+            margin: 0;
+        }
+
+        .test-case-row label {
+            color: var(--text-secondary);
+            font-size: 13px;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            white-space: nowrap;
+        }
+
+        /* Code Editor */
+        .code-editor {
+            height: 400px;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            overflow: hidden;
+        }
+
+        #codeEditorContainer { width:100%; height:100%; }
+
+        .code-editor textarea {
+            width:100%; min-height:300px;
+            background:#1e1e1e; color:#d4d4d4;
+            border:none; font-family:inherit;
+            font-size:14px; resize:vertical;
+        }
+
+        /* Badges */
+        .badge {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 0.3px;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .badge i { font-size: 10px; }
+
+        .badge-easy {
+            background: rgba(34,197,94,0.15);
+            color: #4ade80;
+            box-shadow: inset 0 0 0 1px rgba(34,197,94,0.15);
+        }
+
+        .badge-medium {
+            background: rgba(245,158,11,0.15);
+            color: #fbbf24;
+            box-shadow: inset 0 0 0 1px rgba(245,158,11,0.15);
+        }
+
+        .badge-hard {
+            background: rgba(239,68,68,0.15);
+            color: #f87171;
+            box-shadow: inset 0 0 0 1px rgba(239,68,68,0.15);
+        }
+
+        .badge-passed {
+            background: var(--success-bg);
+            color: var(--success-text);
+        }
+
+        .badge-failed {
+            background: var(--danger-bg);
+            color: var(--danger-text);
+        }
+
+        .badge-pending {
+            background: var(--warning-bg);
+            color: var(--warning-text);
+        }
+
+        /* Page Sections */
+        .page { display: none; }
+        .page.active { display: block; }
+
+        /* Quiz/Test Interface */
+        .test-layout {
+            display: grid;
+            grid-template-columns: 1fr 380px;
+            gap: 20px;
+        }
+
+        .test-layout .main-panel { min-width: 0; }
+
+        .test-layout .side-panel { min-width: 0; }
+
+        .question-card {
+            background: var(--bg-card);
+            padding: 28px;
+            border-radius: var(--radius-md);
+            box-shadow: var(--shadow);
+            margin-bottom: 20px;
+            border: 1px solid var(--border);
+        }
+
+        .question-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .question-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--text-primary);
+            letter-spacing: -0.3px;
+        }
+
+        .question-description {
+            color: var(--text-secondary);
+            line-height: 1.8;
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
+
+        .io-box {
+            background: var(--bg-input);
+            padding: 16px;
+            border-radius: var(--radius-sm);
+            margin-bottom: 10px;
+            border: 1px solid var(--border);
+            font-family: 'Consolas','Courier New',monospace;
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+
+        .io-box strong {
+            display: block;
+            margin-bottom: 6px;
+            color: var(--text-secondary);
+            font-family: 'Inter','Segoe UI',sans-serif;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+        }
+
+        .result-message {
+            padding: 20px;
+            border-radius: var(--radius-sm);
+            margin-top: 15px;
+            animation: scaleIn 0.2s ease;
+        }
+
+        .result-success {
+            background: var(--success-bg);
+            color: var(--success-text);
+            border: 1px solid rgba(34,197,94,0.2);
+        }
+
+        .result-failed {
+            background: var(--danger-bg);
+            color: var(--danger-text);
+            border: 1px solid rgba(239,68,68,0.2);
+        }
+
+        /* Timer & Score */
+        .timer-bar {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .timer {
+            font-size: 20px;
+            font-weight: 700;
+            color: #fff;
+            background: var(--success);
+            padding: 8px 18px;
+            border-radius: var(--radius-sm);
+            letter-spacing: 1px;
+            font-variant-numeric: tabular-nums;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .timer i { font-size: 16px; }
+
+        .timer.warning { background: var(--warning); }
+        .timer.danger { background: var(--danger); animation: pulse 1s infinite; }
+
+        .score-display {
+            font-size: 15px;
+            font-weight: 600;
+            color: #fff;
+            background: var(--primary);
+            padding: 8px 16px;
+            border-radius: var(--radius-sm);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* Main Content */
+        #mainContent { display:none; flex:1; padding:20px; overflow-y:auto; }
+        #adminSidebar, #studentSidebar { display:none; }
+
+        /* Login Screen */
+        .login-screen {
+            display:flex; justify-content:center; align-items:center;
+            min-height:100vh;
+            background: linear-gradient(135deg, #0a0e1a 0%, #151b28 50%, #0d1117 100%);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .login-screen::before {
+            content: '';
+            position: absolute;
+            top: -50%; left: -50%;
+            width: 200%; height: 200%;
+            background: radial-gradient(circle at 30% 50%, rgba(59,130,246,0.03) 0%, transparent 50%),
+                        radial-gradient(circle at 70% 50%, rgba(99,102,241,0.03) 0%, transparent 50%);
+        }
+
+        .login-box {
+            background: var(--bg-card);
+            padding: 40px;
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-lg);
+            text-align: center;
+            width: 380px;
+            border: 1px solid var(--border);
+            position: relative;
+            animation: scaleIn 0.3s ease;
+        }
+
+        .login-box .logo-icon {
+            width: 48px; height: 48px;
+            background: linear-gradient(135deg,var(--primary),#6366f1);
+            border-radius: 14px;
+            display:flex; align-items:center; justify-content:center;
+            font-size: 22px; color:#fff;
+            margin: 0 auto 16px;
+        }
+
+        .login-box h2 {
+            color: var(--text-primary);
+            margin-bottom: 4px;
+            font-size: 22px;
+        }
+
+        .login-box .subtitle {
+            color: var(--text-muted);
+            margin-bottom: 28px;
+            font-size: 14px;
+        }
+
+        .role-buttons { display:flex; flex-direction:column; gap:12px; }
+
+        .role-btn {
+            padding: 18px;
+            font-size: 16px;
+            border: 1px solid var(--border);
+            background: var(--bg-input);
+            color: var(--text-primary);
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .role-btn i { font-size: 18px; color: var(--primary); }
+
+        .role-btn:hover {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+            box-shadow: 0 0 24px var(--primary-glow);
+            transform: translateY(-2px);
+        }
+
+        .role-btn:hover i { color: white; }
+
+        /* Loading */
+        .loading { text-align:center; padding:40px; color:var(--text-muted); }
+
+        .spinner {
+            border:3px solid var(--border);
+            border-top:3px solid var(--primary);
+            border-radius:50%;
+            width:40px; height:40px;
+            animation:spin 1s linear infinite;
+            margin:0 auto 20px;
+        }
+
+        .actions { display:flex; gap:8px; margin-top:16px; flex-wrap:wrap; }
+
+        /* Empty States */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--text-muted);
+        }
+
+        .empty-state i {
+            font-size: 48px;
+            color: var(--border);
+            margin-bottom: 16px;
+        }
+
+        .empty-state h3 {
+            color: var(--text-secondary);
+            font-size: 18px;
+            margin-bottom: 8px;
+        }
+
+        .empty-state p {
+            color: var(--text-muted);
+            font-size: 14px;
+            margin-bottom: 20px;
+        }
+
+        /* Auth Forms */
+        .auth-container {
+            background: var(--bg-card);
+            padding: 40px;
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-lg);
+            width: 420px;
+            max-width: 92%;
+            border: 1px solid var(--border);
+            position: relative;
+            animation: scaleIn 0.3s ease;
+        }
+
+        .auth-container .logo-icon {
+            width: 48px; height: 48px;
+            background: linear-gradient(135deg,var(--primary),#6366f1);
+            border-radius: 14px;
+            display:flex; align-items:center; justify-content:center;
+            font-size: 22px; color:#fff;
+            margin: 0 auto 16px;
+        }
+
+        .auth-container h2 {
+            color: var(--text-primary); text-align:center; margin-bottom:4px; font-size:22px;
+        }
+        .auth-container .subtitle {
+            color: var(--text-muted); text-align:center; margin-bottom:28px; font-size:14px;
+        }
+
+        .auth-tabs {
+            display:flex; border-bottom:1px solid var(--border); margin-bottom:28px;
+        }
+        .auth-tab {
+            flex:1; padding:14px; text-align:center; cursor:pointer; background:none;
+            border:none; font-size:14px; color:var(--text-muted); transition:all 0.2s; font-weight:500;
+        }
+        .auth-tab:hover { color:var(--text-primary); }
+        .auth-tab.active { color:var(--primary); border-bottom:2px solid var(--primary); font-weight:600; }
+        .auth-form { display:none; }
+        .auth-form.active { display:block; }
+
+        .auth-form .form-group { margin-bottom:18px; text-align:left; }
+        .auth-form label { display:block; margin-bottom:6px; font-weight:500; color:var(--text-secondary); font-size:13px; }
+
+        .auth-form input, .auth-form select {
+            width:100%; padding:12px 14px;
+            border:1px solid var(--border); border-radius:var(--radius-sm);
+            font-size:14px; box-sizing:border-box;
+            background:var(--bg-input); color:var(--text-primary);
+            transition: all 0.2s ease;
+        }
+        .auth-form input:focus, .auth-form select:focus {
+            border-color:var(--primary); outline:none;
+            box-shadow:0 0 0 3px var(--primary-glow);
+        }
+        .auth-form input::placeholder { color:var(--text-muted); }
+        .auth-form select option { background:var(--bg-card); color:var(--text-primary); }
+
+        .auth-btn {
+            width:100%; padding:14px;
+            background:var(--primary); color:white; border:none;
+            border-radius:var(--radius-sm); font-size:15px; font-weight:600;
+            cursor:pointer; transition:all 0.2s ease;
+        }
+        .auth-btn:hover {
+            background:var(--primary-hover);
+            box-shadow:0 0 24px var(--primary-glow);
+            transform:translateY(-1px);
+        }
+
+        .auth-error {
+            color:var(--danger-text); background:var(--danger-bg);
+            padding:12px; border-radius:var(--radius-sm);
+            margin-bottom:20px; text-align:center; display:none;
+            font-size:14px; border:1px solid rgba(239,68,68,0.2);
+        }
+        .auth-success {
+            color:var(--success-text); background:var(--success-bg);
+            padding:12px; border-radius:var(--radius-sm);
+            margin-bottom:20px; text-align:center; display:none;
+            font-size:14px; border:1px solid rgba(34,197,94,0.2);
+        }
+
+        /* Card wrapper */
+        .card {
+            background:var(--bg-card); border-radius:var(--radius-md);
+            padding:28px; box-shadow:var(--shadow);
+            border:1px solid var(--border);
+        }
+        .card h2 { color:var(--text-primary); margin-bottom:16px; font-size:20px; letter-spacing:-0.3px; }
+
+        #questionsCheckboxes {
+            background:var(--bg-input) !important;
+            border-radius:var(--radius-sm) !important;
+            padding:12px !important;
+            border:1px solid var(--border) !important;
+        }
+        #questionsCheckboxes label {
+            color:var(--text-secondary); padding:6px 0;
+            display:flex; align-items:center; gap:8px;
+            cursor:pointer; transition:color 0.2s;
+        }
+        #questionsCheckboxes label:hover { color:var(--text-primary); }
+        #questionsCheckboxes input[type="checkbox"] { accent-color:var(--primary); }
+
+        /* Score table */
+        #scoreTable th { background:var(--bg-table-header); color:var(--text-secondary); }
+        #scoreTable td { color:var(--text-primary); }
+
+        #scoreChart {
+            background:var(--bg-card) !important;
+            border:1px solid var(--border) !important;
+            border-radius:var(--radius-md) !important;
+        }
+        #scoreChart p { color:var(--text-muted) !important; }
+
+        /* Existing tests */
+        #existingTestsList table { font-size:13px; }
+        #existingTestsList td strong {
+            color:var(--primary); font-family:'Consolas',monospace; letter-spacing:1px;
+        }
+
+        /* Chart bars */
+        .chart-bar {
+            transition: height 0.5s ease;
+            border-radius: 4px 4px 0 0;
+            min-height: 2px;
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--border-light); }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .sidebar { transform: translateX(-100%); }
+            .sidebar.open { transform: translateX(0); }
+            .sidebar-toggle { display: flex; }
+            .sidebar-overlay.open { display: block; }
+            .main-content { margin-left: 0; padding: 20px; padding-top: 70px; }
+            .stats-grid { grid-template-columns: 1fr 1fr; }
+            .form-grid { grid-template-columns: 1fr; }
+            .test-layout { grid-template-columns: 1fr; }
+            .header { flex-direction: column; align-items: flex-start; gap: 12px; }
+        }
+
+        @media (max-width: 480px) {
+            .stats-grid { grid-template-columns: 1fr; }
+            .header h1 { font-size: 20px; }
+            .main-content { padding: 16px; padding-top: 70px; }
+        }
+    </style>
+</head>
+<body onload="initPage()">
+    <script>
+    function initPage() {
+        var loginScreen = document.getElementById('loginScreen');
+        if (loginScreen) loginScreen.style.display = 'flex';
+        
+        // Initialize Monaco Editor
+        if (typeof require !== 'undefined') {
+            initMonaco();
+        } else {
+            // Fallback: load require.js first then Monaco
+            var script = document.createElement('script');
+            script.src = 'https://cdn.jsdelivr.net/npm/monaco-editor@0.45.0/min/vs/loader.js';
+            script.onload = initMonaco;
+            document.head.appendChild(script);
+        }
+    }
+    </script>
+    <!-- Auth Screen (Login / Register) -->
+    <div id="authScreen" class="login-screen">
+        <div class="auth-container">
+            <div class="logo-icon"><i class="fas fa-code"></i></div>
+            <h2>Assessment Platform</h2>
+            <p class="subtitle">Login or Register to continue</p>
+            
+            <div id="authError" class="auth-error"></div>
+            <div id="authSuccess" class="auth-success"></div>
+            
+            <div class="auth-tabs">
+                <button class="auth-tab active" onclick="switchAuthTab('login')">Login</button>
+                <button class="auth-tab" onclick="switchAuthTab('register')">Register</button>
+            </div>
+            
+            <!-- Login Form -->
+            <div id="loginForm" class="auth-form active">
+                <form onsubmit="handleLogin(event)">
+                    <div class="form-group">
+                        <label>Email</label>
+                        <input type="email" id="loginEmail" required placeholder="your@email.com">
+                    </div>
+                    <div class="form-group">
+                        <label>Password</label>
+                        <input type="password" id="loginPassword" required placeholder="Enter password">
+                    </div>
+                    <button type="submit" class="auth-btn">Login</button>
+                </form>
+            </div>
+            
+            <!-- Registration Form -->
+            <div id="registerForm" class="auth-form">
+                <form onsubmit="handleRegister(event)">
+                    <div class="form-group">
+                        <label>Full Name</label>
+                        <input type="text" id="regFullName" required placeholder="John Doe">
+                    </div>
+                    <div class="form-group">
+                        <label>Username</label>
+                        <input type="text" id="regUsername" required placeholder="johndoe">
+                    </div>
+                    <div class="form-group">
+                        <label>Email</label>
+                        <input type="email" id="regEmail" required placeholder="your@email.com">
+                    </div>
+                    <div class="form-group">
+                        <label>Password</label>
+                        <input type="password" id="regPassword" required placeholder="Min 6 characters" minlength="6">
+                    </div>
+                    <div class="form-group">
+                        <label>Role</label>
+                        <select id="regRole">
+                            <option value="STUDENT">Student</option>
+                            <option value="ADMIN">Admin</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="auth-btn">Register</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sidebar Toggle (Mobile) -->
+    <button class="sidebar-toggle" onclick="toggleSidebar()"><i class="fas fa-bars"></i></button>
+    <div class="sidebar-overlay" onclick="toggleSidebar()"></div>
+
+    <!-- Admin Sidebar -->
+    <div id="adminSidebar" class="sidebar" style="display: none;">
+        <div class="sidebar-header">
+            <div class="logo-icon"><i class="fas fa-code"></i></div>
+            <div>
+                <h2>Admin Panel</h2>
+                <div class="subtitle">Assessment Platform</div>
+            </div>
+        </div>
+        <div class="sidebar-nav">
+            <div class="nav-section-title">Main</div>
+            <div class="menu-item active" onclick="showPage('dashboard')">
+                <i class="fas fa-chart-bar"></i><span>Dashboard</span>
+            </div>
+            <div class="nav-section-title">Content</div>
+            <div class="menu-item" onclick="showPage('questions')">
+                <i class="fas fa-question-circle"></i><span>Manage Questions</span>
+            </div>
+            <div class="menu-item" onclick="showPage('create-question')">
+                <i class="fas fa-upload"></i><span>Upload Questions</span>
+            </div>
+            <div class="menu-item" onclick="showPage('create-test')">
+                <i class="fas fa-plus-circle"></i><span>Create Test</span>
+            </div>
+            <div class="nav-section-title">Analytics</div>
+            <div class="menu-item" onclick="showPage('submissions')">
+                <i class="fas fa-list-check"></i><span>Submissions</span>
+            </div>
+        </div>
+        <div class="sidebar-footer">
+            <div class="menu-item" onclick="logout()">
+                <i class="fas fa-sign-out-alt"></i><span>Logout</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Student Sidebar -->
+    <div id="studentSidebar" class="sidebar" style="display: none;">
+        <div class="sidebar-header">
+            <div class="logo-icon"><i class="fas fa-graduation-cap"></i></div>
+            <div>
+                <h2>Student Portal</h2>
+                <div class="subtitle">Assessment Platform</div>
+            </div>
+        </div>
+        <div class="sidebar-nav">
+            <div class="nav-section-title">Tests</div>
+            <div class="menu-item active" onclick="showPage('available-tests')">
+                <i class="fas fa-clipboard-list"></i><span>Available Tests</span>
+            </div>
+            <div class="nav-section-title">History</div>
+            <div class="menu-item" onclick="showPage('my-submissions')">
+                <i class="fas fa-file-alt"></i><span>My Submissions</span>
+            </div>
+        </div>
+        <div class="sidebar-footer">
+            <div class="menu-item" onclick="logout()">
+                <i class="fas fa-sign-out-alt"></i><span>Logout</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div id="mainContent" class="main-content" style="display: none;">
+        <!-- Admin Dashboard -->
+        <div id="page-dashboard" class="page">
+            <div class="header">
+                <h1>Dashboard</h1>
+                <div class="user-info">Welcome, <span id="adminUserName">Admin</span></div>
+            </div>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-card-top">
+                        <h3>Total Questions</h3>
+                        <div class="stat-icon blue"><i class="fas fa-code"></i></div>
+                    </div>
+                    <div class="number" id="totalQuestions">0</div>
+                    <div class="stat-footer">Questions in database</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-card-top">
+                        <h3>Total Submissions</h3>
+                        <div class="stat-icon purple"><i class="fas fa-file-code"></i></div>
+                    </div>
+                    <div class="number" id="totalSubmissions">0</div>
+                    <div class="stat-footer">Total submissions received</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-card-top">
+                        <h3>Passed</h3>
+                        <div class="stat-icon green"><i class="fas fa-check-circle"></i></div>
+                    </div>
+                    <div class="number" id="passedSubmissions">0</div>
+                    <div class="stat-footer">Submissions passed</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-card-top">
+                        <h3>Failed</h3>
+                        <div class="stat-icon red"><i class="fas fa-times-circle"></i></div>
+                    </div>
+                    <div class="number" id="failedSubmissions">0</div>
+                    <div class="stat-footer">Submissions failed</div>
+                </div>
+            </div>
+            <div class="card" style="margin-top: 32px; overflow: hidden;">
+                <h2><i class="fas fa-trophy" style="color: var(--warning); margin-right: 8px;"></i> Student Scores</h2>
+                <table id="scoreTable" style="width: 100%; border-collapse: collapse; margin-top: 8px;">
+                    <thead>
+                        <tr>
+                            <th style="padding: 14px 18px; text-align: left;">Student Name</th>
+                            <th style="padding: 14px 18px; text-align: center;">Score</th>
+                            <th style="padding: 14px 18px; text-align: center;">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="scoreTableBody"></tbody>
+                </table>
+                <div id="scoreChart" style="display: flex; align-items: flex-end; height: 300px; gap: 24px; padding: 24px; border: 1px solid var(--border); border-radius: var(--radius-md); margin-top: 16px;">
+                    <div class="empty-state" style="width:100%;">
+                        <i class="fas fa-chart-bar"></i>
+                        <h3>No Scores Yet</h3>
+                        <p>Student scores will appear here once assessments are completed</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Questions List -->
+        <div id="page-questions" class="page">
+            <div class="header">
+                <h1>Questions</h1>
+                <div class="header-actions">
+                    <button class="btn btn-primary" onclick="showPage('create-question')"><i class="fas fa-plus"></i> Add Question</button>
+                </div>
+            </div>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Title</th>
+                            <th>Difficulty</th>
+                            <th>Test Cases</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="questionsTableBody">
+                        <tr>
+                            <td colspan="5" class="loading">
+                                <div class="spinner"></div>
+                                Loading...
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Create Question -->
+        <div id="page-create-question" class="page">
+            <div class="header">
+                <h1>Upload Question</h1>
+            </div>
+            <div class="form-container">
+                <form id="questionForm">
+                    <div class="form-group">
+                        <label>Title *</label>
+                        <input type="text" name="title" required placeholder="Enter question title">
+                    </div>
+                    <div class="form-group">
+                        <label>Description</label>
+                        <textarea name="description" placeholder="Enter question description"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Difficulty *</label>
+                        <select name="difficulty" required>
+                            <option value="">Select difficulty</option>
+                            <option value="EASY">Easy</option>
+                            <option value="MEDIUM">Medium</option>
+                            <option value="HARD">Hard</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Constraints</label>
+                        <input type="text" name="constraints" placeholder="e.g., 1 <= n <= 1000">
+                    </div>
+                    <div class="form-group">
+                        <label>Sample Input</label>
+                        <input type="text" name="sampleInput" placeholder="Sample input">
+                    </div>
+                    <div class="form-group">
+                        <label>Sample Output</label>
+                        <input type="text" name="sampleOutput" placeholder="Sample output">
+                    </div>
+                    <div class="form-group">
+                        <label>Time Limit (ms)</label>
+                        <input type="number" name="timeLimit" value="1000">
+                    </div>
+                    
+                    <h3 style="margin: 20px 0; color: #94a3b8;">Test Cases</h3>
+                    <div id="testCasesContainer">
+                        <div class="test-case-row">
+                            <input type="text" name="tcInput[]" placeholder="Input">
+                            <input type="text" name="tcOutput[]" placeholder="Expected Output">
+                            <input type="checkbox" name="tcHidden[]"> Hidden
+                            <button type="button" class="btn btn-danger btn-sm" onclick="addTestCase()">+</button>
+                        </div>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary">Create Question</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Create Test -->
+        <div id="page-create-test" class="page">
+            <div class="header">
+                <h1>Create New Test</h1>
+            </div>
+            <div class="card">
+                <form id="testForm">
+                    <div class="form-group">
+                        <label>Test Title *</label>
+                        <input type="text" name="testTitle" required placeholder="e.g., Full Stack Assessment">
+                    </div>
+                    <div class="form-group">
+                        <label>Description</label>
+                        <textarea name="testDesc" rows="3" placeholder="Describe the test"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Duration (minutes) *</label>
+                        <input type="number" name="testDuration" value="60" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Select Questions</label>
+                        <div id="questionsCheckboxes" style="max-height: 200px; overflow-y: auto; border: 1px solid #ddd; padding: 10px;">
+                            Loading questions...
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label><input type="checkbox" id="testIsActive" checked> Active</label>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Create Test</button>
+                </form>
+            </div>
+            
+            <div class="card" style="margin-top: 30px;">
+                <h2>Existing Tests</h2>
+                <div id="existingTestsList" style="max-height: 300px; overflow-y: auto;">
+                    Loading...
+                </div>
+            </div>
+        </div>
+
+        <!-- Submissions (Admin) -->
+        <div id="page-submissions" class="page">
+            <div class="header">
+                <h1>Submissions</h1>
+            </div>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Question</th>
+                            <th>Language</th>
+                            <th>Status</th>
+                            <th>Score</th>
+                            <th>Date</th>
+                        </tr>
+                    </thead>
+                    <tbody id="submissionsTableBody">
+                        <tr>
+                            <td colspan="6" class="loading">
+                                <div class="spinner"></div>
+                                Loading...
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Available Tests (Student) -->
+        <div id="page-available-tests" class="page">
+            <div class="header">
+                <h1>Available Tests</h1>
+                <div class="user-info">Student: <span id="studentUserName">Student</span></div>
+            </div>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Title</th>
+                            <th>Description</th>
+                            <th>Questions</th>
+                            <th>Duration</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="availableTestsBody">
+                        <tr>
+                            <td colspan="6" class="loading">
+                                <div class="spinner"></div>
+                                Loading...
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            
+            <div class="card" style="margin-top: 30px;">
+                <h2>Start a Test</h2>
+                <div class="form-group">
+                    <label>Test ID</label>
+                    <input type="number" id="startTestId" placeholder="Enter Test ID">
+                </div>
+                <div class="form-group">
+                    <label>Access Code</label>
+                    <input type="text" id="startAccessCode" placeholder="Enter Access Code">
+                </div>
+                <div class="form-group">
+                    <label>Your Name</label>
+                    <input type="text" id="startStudentName" placeholder="Auto-filled from profile">
+                </div>
+                <button class="btn btn-primary" onclick="startTest()">Start Test</button>
+            </div>
+        </div>
+
+        <!-- Take Test -->
+        <div id="page-take-test" class="page">
+            <div class="header">
+                <h1 id="testQuestionTitle">Take Test</h1>
+                <div class="timer-bar">
+                    <div class="timer" id="testTimer"><i class="fas fa-clock"></i> 00:00</div>
+                    <div class="score-display" id="scoreDisplay"><i class="fas fa-star"></i> Score: --</div>
+                </div>
+            </div>
+            <div class="test-layout">
+                <div class="main-panel">
+                    <div class="question-card">
+                        <div class="question-header">
+                            <div class="question-title" id="qtTitle"></div>
+                            <span class="badge" id="qtDifficulty"></span>
+                        </div>
+                        <div class="question-description" id="qtDescription"></div>
+                        
+                        <div class="io-box">
+                            <strong><i class="fas fa-arrow-right"></i> Sample Input:</strong>
+                            <span id="qtSampleInput">-</span>
+                        </div>
+                        <div class="io-box">
+                            <strong><i class="fas fa-arrow-left"></i> Sample Output:</strong>
+                            <span id="qtSampleOutput">-</span>
+                        </div>
+                    </div>
+                    
+                    <div id="testResult" style="display: none;"></div>
+                </div>
+                
+                <div class="side-panel">
+                    <div class="question-card">
+                        <div class="form-group">
+                            <label>Language</label>
+                            <select id="languageSelect" onchange="changeLanguage(this.value)">
+                                <option value="PYTHON">Python</option>
+                                <option value="JAVA">Java</option>
+                                <option value="CPP">C++</option>
+                            </select>
+                        </div>
+
+                        <label>Your Code</label>
+                        <div id="codeEditorContainer" style="height: 350px; border: 1px solid var(--border); border-radius: 8px;"></div>
+                        
+                        <div class="actions" style="margin-top: 16px;">
+                            <button class="btn btn-primary" onclick="submitTest()"><i class="fas fa-paper-plane"></i> Submit</button>
+                            <button class="btn btn-secondary" onclick="prevQuestion()"><i class="fas fa-chevron-left"></i> Prev</button>
+                            <button class="btn btn-secondary" onclick="nextQuestion()"><i class="fas fa-chevron-right"></i> Next</button>
+                            <button class="btn btn-danger" onclick="exitTest()"><i class="fas fa-sign-out-alt"></i> Exit</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- My Submissions -->
+        <div id="page-my-submissions" class="page">
+            <div class="header">
+                <h1>My Submissions</h1>
+            </div>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Question</th>
+                            <th>Status</th>
+                            <th>Score</th>
+                            <th>Date</th>
+                        </tr>
+                    </thead>
+                    <tbody id="mySubmissionsBody">
+                        <tr>
+                            <td colspan="5" class="loading">
+                                <div class="spinner"></div>
+                                Loading...
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/api.js?v=8"></script>
+    <script>
+        let currentRole = '';
+        let currentUserId = 1;
+        let currentUserName = '';
+        let currentQuestionId = null;
+        let currentQuestions = [];
+        let currentQuestionIndex = 0;
+        let timerInterval = null;
+        let testDuration = 60;
+        let timeLeft = 0;
+        let activeTab = 'dashboard';
+        let currentTestSessionId = null;
+        let editingQuestionId = null;
+        let editingTestId = null;
+
+        function toggleSidebar() {
+            document.querySelectorAll('.sidebar').forEach(s => s.classList.toggle('open'));
+            document.querySelector('.sidebar-overlay').classList.toggle('open');
+        }
+
+        function animateCounter(el, target, duration) {
+            let start = 0;
+            const step = Math.max(1, Math.floor(target / (duration / 16)));
+            const timer = setInterval(() => {
+                start += step;
+                if (start >= target) {
+                    el.textContent = target;
+                    clearInterval(timer);
+                } else {
+                    el.textContent = start;
+                }
+            }, 16);
+        }
+
+        function initPage() {
+            var authScreen = document.getElementById('authScreen');
+            if (authScreen) authScreen.style.display = 'flex';
+            
+            var token = localStorage.getItem('authToken');
+            if (token) {
+                var storedUser = localStorage.getItem('currentUser');
+                if (storedUser) {
+                    var user = JSON.parse(storedUser);
+                    handleLoginSuccess(user);
+                }
+            }
+            
+            if (typeof require !== 'undefined') {
+                initMonaco();
+            } else {
+                var script = document.createElement('script');
+                script.src = 'https://cdn.jsdelivr.net/npm/monaco-editor@0.45.0/min/vs/loader.js';
+                script.onload = initMonaco;
+                document.head.appendChild(script);
+            }
+        }
+
+        function switchAuthTab(tab) {
+            document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.auth-form').forEach(f => f.classList.remove('active'));
+            
+            hideAuthMessages();
+            
+            if (tab === 'login') {
+                document.querySelectorAll('.auth-tab')[0].classList.add('active');
+                document.getElementById('loginForm').classList.add('active');
+            } else {
+                document.querySelectorAll('.auth-tab')[1].classList.add('active');
+                document.getElementById('registerForm').classList.add('active');
+            }
+        }
+
+        function hideAuthMessages() {
+            document.getElementById('authError').style.display = 'none';
+            document.getElementById('authSuccess').style.display = 'none';
+        }
+
+        function showAuthError(msg) {
+            var el = document.getElementById('authError');
+            el.textContent = msg;
+            el.style.display = 'block';
+        }
+
+        function showAuthSuccess(msg) {
+            var el = document.getElementById('authSuccess');
+            el.textContent = msg;
+            el.style.display = 'block';
+        }
+
+        async function handleLogin(event) {
+            event.preventDefault();
+            var email = document.getElementById('loginEmail').value;
+            var password = document.getElementById('loginPassword').value;
+            
+            hideAuthMessages();
+            
+            try {
+                var response = await window.api.login({ email: email, password: password });
+                
+                if (response.success) {
+                    var user = response.data;
+                    localStorage.setItem('authToken', user.token);
+                    localStorage.setItem('currentUser', JSON.stringify(user));
+                    handleLoginSuccess(user);
+                } else {
+                    showAuthError(response.message || 'Login failed');
+                }
+            } catch(e) {
+                showAuthError('Login failed: ' + e.message);
+            }
+        }
+
+        async function handleRegister(event) {
+            event.preventDefault();
+            var fullName = document.getElementById('regFullName').value;
+            var username = document.getElementById('regUsername').value;
+            var email = document.getElementById('regEmail').value;
+            var password = document.getElementById('regPassword').value;
+            var role = document.getElementById('regRole').value;
+            
+            hideAuthMessages();
+            
+            try {
+                var response = await window.api.register({
+                    username: username,
+                    email: email,
+                    password: password,
+                    fullName: fullName,
+                    role: role
+                });
+                
+                if (response.success) {
+                    showAuthSuccess('Registration successful! You can now login.');
+                    document.getElementById('regFullName').value = '';
+                    document.getElementById('regUsername').value = '';
+                    document.getElementById('regEmail').value = '';
+                    document.getElementById('regPassword').value = '';
+                    setTimeout(() => switchAuthTab('login'), 2000);
+                } else {
+                    showAuthError(response.message || 'Registration failed');
+                }
+            } catch(e) {
+                showAuthError('Registration failed: ' + e.message);
+            }
+        }
+
+        function handleLoginSuccess(user) {
+            currentUserId = user.userId;
+            currentUserName = user.fullName || user.username;
+            currentRole = user.role;
+            
+            document.getElementById('authScreen').style.display = 'none';
+            document.getElementById('mainContent').style.display = 'block';
+            
+            if (user.role === 'ADMIN') {
+                document.getElementById('adminSidebar').style.display = 'block';
+                document.getElementById('studentSidebar').style.display = 'none';
+                document.getElementById('adminUserName').textContent = currentUserName;
+                showPage('dashboard');
+            } else {
+                document.getElementById('adminSidebar').style.display = 'none';
+                document.getElementById('studentSidebar').style.display = 'block';
+                document.getElementById('studentUserName').textContent = currentUserName;
+                showPage('available-tests');
+            }
+        }
+        
+        function logout() {
+            localStorage.removeItem('authToken');
+            localStorage.removeItem('currentUser');
+            currentRole = '';
+            currentUserId = 1;
+            currentUserName = '';
+            location.reload();
+        }
+
+        // Page Navigation
+        function showPage(pageId) {
+            console.log('showPage called:', pageId);
+            
+            activeTab = pageId;
+            
+            // Hide ALL pages aggressively - set inline style + toggle class
+            var allPages = document.querySelectorAll('.page');
+            allPages.forEach(function(p) {
+                p.style.display = 'none';
+                p.classList.remove('active');
+            });
+            
+            // Check if element exists
+            var targetPage = document.getElementById('page-' + pageId);
+            console.log('Target page element:', targetPage);
+            
+            if (!targetPage) {
+                console.log('Page not found: page-' + pageId);
+                return;
+            }
+            
+            // Show target page
+            targetPage.style.display = 'block';
+            targetPage.classList.add('active');
+            
+            console.log('Page displayed successfully');
+            
+            // Update menu active state
+            if (currentRole === 'admin') {
+                document.querySelectorAll('#adminSidebar .menu-item').forEach(item => item.classList.remove('active'));
+                document.querySelectorAll('#adminSidebar .menu-item').forEach(item => {
+                    if (item.getAttribute('onclick')?.includes(pageId)) {
+                        item.classList.add('active');
+                    }
+                });
+            } else {
+                document.querySelectorAll('#studentSidebar .menu-item').forEach(item => item.classList.remove('active'));
+                document.querySelectorAll('#studentSidebar .menu-item').forEach(item => {
+                    if (item.getAttribute('onclick')?.includes(pageId)) {
+                        item.classList.add('active');
+                    }
+                });
+            }
+
+            // Load data based on page
+            if (pageId === 'dashboard') {
+                loadDashboard();
+                startDashboardRefresh();
+            }
+            if (pageId === 'questions') loadQuestions();
+            if (pageId === 'submissions') loadSubmissions();
+            if (pageId === 'available-tests') loadAvailableTests();
+            if (pageId === 'my-submissions') loadMySubmissions();
+            if (pageId === 'create-question') {
+                loadQuestions();
+                if (!editingQuestionId) {
+                    document.querySelector('#page-create-question h1').textContent = 'Upload Question';
+                    document.getElementById('questionForm').querySelector('button[type="submit"]').textContent = 'Create Question';
+                }
+            }
+            if (pageId === 'create-test') {
+                loadQuestionsForTest();
+                loadExistingTests();
+                if (!editingTestId) {
+                    document.querySelector('#page-create-test h1').textContent = 'Create New Test';
+                    document.getElementById('testForm').querySelector('button[type="submit"]').textContent = 'Create Test';
+                    document.getElementById('testIsActive').checked = true;
+                }
+            }
+        }
+        
+        function exitTest() {
+            if (timerInterval) {
+                clearInterval(timerInterval);
+                timerInterval = null;
+            }
+            currentTestSessionId = null;
+            currentQuestions = [];
+            currentQuestionIndex = 0;
+            showPage('available-tests');
+        }
+        
+function stopPageRefresh() {
+            if (dashboardInterval) {
+                clearInterval(dashboardInterval);
+                dashboardInterval = null;
+            }
+        }
+        
+        // Dashboard
+        let dashboardInterval = null;
+        
+        async function loadDashboard() {
+            try {
+                const dashboard = await window.api.getDashboard();
+                const data = dashboard.data || {};
+                
+                animateCounter(document.getElementById('totalQuestions'), data.totalQuestions || 0, 800);
+                animateCounter(document.getElementById('totalSubmissions'), data.totalSubmissions || 0, 800);
+                
+                const passedCount = (data.scoreData || []).filter(s => s.score >= 50).length;
+                const failedCount = (data.scoreData || []).filter(s => s.score < 50).length;
+                document.getElementById('passedSubmissions').textContent = passedCount;
+                document.getElementById('failedSubmissions').textContent = failedCount;
+                
+                const scoreData = data.scoreData || [];
+                const tbody = document.getElementById('scoreTableBody');
+                const chartContainer = document.getElementById('scoreChart');
+                
+                if (scoreData.length > 0) {
+                    tbody.innerHTML = scoreData.map(s => `
+                        <tr style="border-bottom: 1px solid var(--border); background: ${s.score >= 50 ? 'rgba(34,197,94,0.06)' : 'rgba(239,68,68,0.06)'};">
+                            <td style="padding: 12px 18px; color: var(--text-primary);">${s.studentName}</td>
+                            <td style="padding: 12px 18px; text-align: center; font-weight: 700; color: ${s.score >= 50 ? '#4ade80' : '#f87171'};">${s.score}%</td>
+                            <td style="padding: 12px 18px; text-align: center;">
+                                <span class="badge ${s.score >= 50 ? 'badge-passed' : 'badge-failed'}">
+                                    ${s.score >= 50 ? '<i class=\"fas fa-check\"></i> PASSED' : '<i class=\"fas fa-times\"></i> FAILED'}
+                                </span>
+                            </td>
+                        </tr>
+                    `).join('');
+                    
+                    chartContainer.innerHTML = scoreData.map(s => `
+                        <div style="text-align: center; flex: 1; display: flex; flex-direction: column; justify-content: flex-end; align-items: center;">
+                            <div style="margin-bottom: 6px; font-size: 13px; font-weight: 600; color: var(--text-secondary);">${s.score}%</div>
+                            <div class="chart-bar" style="width: 50px; background: ${s.score >= 50 ? 'linear-gradient(180deg, #4ade80, #22c55e)' : 'linear-gradient(180deg, #f87171, #ef4444)'}; height: ${Math.max(s.score * 2.5, 4)}px;"></div>
+                            <div style="margin-top: 8px; font-size: 11px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 70px; color: var(--text-muted);">${s.studentName}</div>
+                        </div>
+                    `).join('');
+                } else {
+                    tbody.innerHTML = '<tr><td colspan="3" style="text-align: center; padding: 40px;"><div class="empty-state"><i class="fas fa-chart-bar"></i><h3>No Scores Yet</h3><p>Complete assessments to see results here</p></div></td></tr>';
+                    chartContainer.innerHTML = '<div class="empty-state" style="width:100%;"><i class="fas fa-chart-bar"></i><h3>No Scores Yet</h3><p>Student scores will appear here once assessments are completed</p></div>';
+                }
+            } catch(e) {
+                console.error('Dashboard error:', e);
+            }
+        }
+        
+        function startDashboardRefresh() {
+            if (dashboardInterval) clearInterval(dashboardInterval);
+            loadDashboard();
+            dashboardInterval = setInterval(loadDashboard, 5000);
+        }
+
+        function stopDashboardRefresh() {
+            if (dashboardInterval) {
+                clearInterval(dashboardInterval);
+                dashboardInterval = null;
+            }
+        }
+        
+        // Questions
+        async function loadQuestions() {
+            const result = await window.api.getQuestions();
+            const questions = result.data || [];
+            
+            const tbody = document.getElementById('questionsTableBody');
+            if (questions.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5"><div class="empty-state"><i class="fas fa-question-circle"></i><h3>No Questions Yet</h3><p>Create your first question to get started</p><button class="btn btn-primary" onclick="showPage(\'create-question\')"><i class="fas fa-plus"></i> Create Question</button></div></td></tr>';
+                return;
+            }
+            
+            tbody.innerHTML = questions.map(q => `
+                <tr>
+                    <td>${q.id}</td>
+                    <td>${q.title}</td>
+                    <td><span class="badge badge-${q.difficulty.toLowerCase()}">${q.difficulty}</span></td>
+                    <td>${q.testCaseCount || 0}</td>
+                    <td>
+                        <button class="btn btn-sm btn-primary" onclick="viewQuestion(${q.id})">View</button>
+                        <button class="btn btn-sm btn-secondary" onclick="editQuestion(${q.id})">Edit</button>
+                        <button class="btn btn-sm btn-danger" onclick="deleteQuestion(${q.id})">Delete</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function viewQuestion(id) {
+            alert('Question ID: ' + id);
+        }
+
+        async function editQuestion(id) {
+            try {
+                const result = await window.api.getQuestion(id);
+                const q = result.data;
+                if (!q) {
+                    alert('Question not found');
+                    return;
+                }
+
+                editingQuestionId = id;
+
+                const form = document.getElementById('questionForm');
+                form.querySelector('[name="title"]').value = q.title || '';
+                form.querySelector('[name="description"]').value = q.description || '';
+                form.querySelector('[name="difficulty"]').value = q.difficulty || '';
+                form.querySelector('[name="constraints"]').value = q.constraints || '';
+                form.querySelector('[name="sampleInput"]').value = q.sampleInput || '';
+                form.querySelector('[name="sampleOutput"]').value = q.sampleOutput || '';
+                form.querySelector('[name="timeLimit"]').value = q.timeLimit || 1000;
+
+                const container = document.getElementById('testCasesContainer');
+                container.innerHTML = '';
+                if (q.testCases && q.testCases.length > 0) {
+                    q.testCases.forEach(tc => {
+                        const div = document.createElement('div');
+                        div.className = 'test-case-row';
+                        div.innerHTML = `
+                            <input type="text" name="tcInput[]" placeholder="Input" value="${escapeHtml(tc.input || '')}">
+                            <input type="text" name="tcOutput[]" placeholder="Expected Output" value="${escapeHtml(tc.expectedOutput || '')}">
+                            <input type="checkbox" name="tcHidden[]" ${tc.isHidden ? 'checked' : ''}> Hidden
+                            <button type="button" class="btn btn-danger btn-sm" onclick="this.parentElement.remove()">-</button>
+                        `;
+                        container.appendChild(div);
+                    });
+                } else {
+                    addTestCase();
+                }
+
+                document.querySelector('#page-create-question h1').textContent = 'Edit Question';
+                form.querySelector('button[type="submit"]').textContent = 'Update Question';
+
+                showPage('create-question');
+            } catch(e) {
+                alert('Error loading question: ' + e.message);
+            }
+        }
+
+        async function deleteQuestion(id) {
+            if (!confirm('Are you sure you want to delete this question?')) return;
+            try {
+                const result = await window.api.deleteQuestion(id);
+                if (result.success) {
+                    alert('Question deleted successfully');
+                    loadQuestions();
+                } else {
+                    alert('Error: ' + result.message);
+                }
+            } catch(e) {
+                alert('Error deleting question: ' + e.message);
+            }
+        }
+
+        function escapeHtml(str) {
+            const div = document.createElement('div');
+            div.textContent = str;
+            return div.innerHTML;
+        }
+
+        // Load questions for test creation
+        async function loadQuestionsForTest() {
+            try {
+                const result = await window.api.getQuestions();
+                const questions = result.data || [];
+                document.getElementById('questionsCheckboxes').innerHTML = questions.map(q => 
+                    '<label style="display:block; margin: 5px 0;"><input type="checkbox" name="questionIds" value="' + q.id + '"> ' + q.id + '. ' + q.title + ' (' + q.difficulty + ')</label>'
+                ).join('') || 'No questions available';
+            } catch(e) {
+                document.getElementById('questionsCheckboxes').innerHTML = 'Error loading questions';
+            }
+        }
+
+        // Load existing tests
+        async function loadExistingTests() {
+            try {
+                const result = await window.api.getTests();
+                const tests = result.data || [];
+                if (tests.length === 0) {
+                    document.getElementById('existingTestsList').innerHTML = '<div class="empty-state"><i class="fas fa-clipboard-list"></i><h3>No Tests Created</h3><p>Create your first test above</p></div>';
+                    return;
+                }
+                document.getElementById('existingTestsList').innerHTML = '<table style="width:100%"><thead><tr><th>ID</th><th>Title</th><th>Questions</th><th>Duration</th><th>Access Code</th><th>Status</th><th>Actions</th></tr></thead><tbody>' + 
+                    tests.map(t => '<tr><td>' + t.id + '</td><td>' + t.title + '</td><td>' + (t.questionCount || 0) + '</td><td>' + t.duration + ' min</td><td><strong>' + t.accessCode + '</strong></td><td>' + (t.isActive ? 'Active' : 'Inactive') + '</td><td><button class="btn btn-sm btn-secondary" onclick="viewTestResults(' + t.id + ')">Results</button> <button class="btn btn-sm btn-primary" onclick="editTest(' + t.id + ')">Edit</button> <button class="btn btn-sm btn-danger" onclick="deleteTest(' + t.id + ')">Delete</button></td></tr>').join('') +
+                    '</tbody></table>';
+            } catch(e) {
+                document.getElementById('existingTestsList').innerHTML = 'Error loading tests: ' + e.message;
+            }
+        }
+        
+        async function editTest(id) {
+            try {
+                const result = await window.api.getTest(id);
+                const t = result.data;
+                if (!t) {
+                    alert('Test not found');
+                    return;
+                }
+
+                editingTestId = id;
+
+                const form = document.getElementById('testForm');
+                form.querySelector('[name="testTitle"]').value = t.title || '';
+                form.querySelector('[name="testDesc"]').value = t.description || '';
+                form.querySelector('[name="testDuration"]').value = t.duration || 60;
+
+                const cb = document.getElementById('testIsActive');
+                if (cb) cb.checked = t.isActive !== false;
+
+                const checkboxes = document.querySelectorAll('input[name="questionIds"]');
+                checkboxes.forEach(c => c.checked = false);
+                if (t.questionIds && t.questionIds.length > 0) {
+                    checkboxes.forEach(c => {
+                        if (t.questionIds.includes(parseInt(c.value))) {
+                            c.checked = true;
+                        }
+                    });
+                }
+
+                document.querySelector('#page-create-test h1').textContent = 'Edit Test';
+                form.querySelector('button[type="submit"]').textContent = 'Update Test';
+
+                showPage('create-test');
+            } catch(e) {
+                alert('Error loading test: ' + e.message);
+            }
+        }
+
+        async function deleteTest(id) {
+            if (!confirm('Are you sure you want to delete this test?')) return;
+            try {
+                const result = await window.api.deleteTest(id);
+                if (result.success) {
+                    alert('Test deleted successfully');
+                    loadExistingTests();
+                } else {
+                    alert('Error: ' + result.message);
+                }
+            } catch(e) {
+                alert('Error deleting test: ' + e.message);
+            }
+        }
+
+        async function viewTestResults(testId) {
+            try {
+                const result = await window.api.getTestResults(testId);
+                const sessions = result.data || [];
+                if (sessions.length === 0) {
+                    alert('No submissions for this test');
+                    return;
+                }
+                let html = '<table style="width:100%"><thead><tr><th>Student</th><th>Score</th><th>Status</th><th>End Time</th></tr></thead><tbody>';
+                html += sessions.map(s => '<tr><td>' + s.studentName + '</td><td>' + (s.score || 0) + '</td><td>' + s.status + '</td><td>' + (s.endTime ? new Date(s.endTime).toLocaleString() : '-') + '</td></tr>').join('');
+                html += '</tbody></table>';
+                
+                const win = window.open('', '_blank', 'width=800,height=600');
+                win.document.write('<html><head><title>Test Results</title></head><body>');
+                win.document.write('<h2>Test Results</h2>');
+                win.document.write(html);
+                win.document.write('<br><button onclick="window.close()">Close</button>');
+                win.document.write('</body></html>');
+            } catch(e) {
+                alert('Error loading results: ' + e.message);
+            }
+        }
+
+        // Create / Update Question
+        document.getElementById('questionForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(e.target);
+            const testCases = [];
+            
+            const inputs = formData.getAll('tcInput[]');
+            const outputs = formData.getAll('tcOutput[]');
+            const hiddens = formData.getAll('tcHidden[]');
+            
+            for (let i = 0; i < inputs.length; i++) {
+                if (inputs[i]) {
+                    testCases.push({
+                        input: inputs[i],
+                        expectedOutput: outputs[i] || '',
+                        isHidden: hiddens[i] === 'on',
+                        isSample: i === 0
+                    });
+                }
+            }
+            
+            const data = {
+                title: formData.get('title'),
+                description: formData.get('description'),
+                difficulty: formData.get('difficulty'),
+                constraints: formData.get('constraints'),
+                sampleInput: formData.get('sampleInput'),
+                sampleOutput: formData.get('sampleOutput'),
+                timeLimit: parseInt(formData.get('timeLimit')),
+                testCases: testCases
+            };
+            
+            try {
+                let result;
+                if (editingQuestionId) {
+                    result = await window.api.updateQuestion(editingQuestionId, data);
+                } else {
+                    result = await window.api.createQuestion(data);
+                }
+                if (result.success) {
+                    alert(editingQuestionId ? 'Question updated successfully!' : 'Question created successfully!');
+                    editingQuestionId = null;
+                    e.target.reset();
+                    document.querySelector('#page-create-question h1').textContent = 'Upload Question';
+                    e.target.querySelector('button[type="submit"]').textContent = 'Create Question';
+                    showPage('questions');
+                } else {
+                    alert('Error: ' + result.message);
+                }
+            } catch(e) {
+                alert('Error saving question');
+            }
+        });
+
+        // Create / Update Test
+        document.getElementById('testForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(e.target);
+            const selectedQuestions = Array.from(document.querySelectorAll('input[name="questionIds"]:checked')).map(cb => parseInt(cb.value));
+            
+            if (selectedQuestions.length === 0) {
+                alert('Please select at least one question');
+                return;
+            }
+            
+            const isActive = document.getElementById('testIsActive').checked;
+            
+            const data = {
+                title: formData.get('testTitle'),
+                description: formData.get('testDesc'),
+                duration: parseInt(formData.get('testDuration')),
+                isActive: isActive,
+                questionIds: selectedQuestions
+            };
+            
+            console.log('Saving test with:', JSON.stringify(data));
+            
+            try {
+                let result;
+                if (editingTestId) {
+                    result = await window.api.updateTest(editingTestId, data);
+                } else {
+                    result = await window.api.createTest(data);
+                }
+                console.log('Result:', result);
+                if (result.success) {
+                    alert(editingTestId ? 'Test updated successfully!' : 'Test created successfully! Access Code: ' + result.data.accessCode);
+                    editingTestId = null;
+                    e.target.reset();
+                    document.getElementById('testIsActive').checked = true;
+                    document.querySelector('#page-create-test h1').textContent = 'Create New Test';
+                    e.target.querySelector('button[type="submit"]').textContent = 'Create Test';
+                    showPage('dashboard');
+                } else {
+                    alert('Error: ' + result.message);
+                }
+            } catch(e) {
+                console.error('Error:', e);
+                alert('Error saving test: ' + e.message);
+            }
+        });
+
+        function addTestCase() {
+            const container = document.getElementById('testCasesContainer');
+            const div = document.createElement('div');
+            div.className = 'test-case-row';
+            div.innerHTML = `
+                <input type="text" name="tcInput[]" placeholder="Input">
+                <input type="text" name="tcOutput[]" placeholder="Expected Output">
+                <input type="checkbox" name="tcHidden[]"> Hidden
+                <button type="button" class="btn btn-danger btn-sm" onclick="this.parentElement.remove()">-</button>
+            `;
+            container.appendChild(div);
+        }
+
+        // Submissions
+        async function loadSubmissions() {
+            // For admin, show all submissions (mock)
+            const tbody = document.getElementById('submissionsTableBody');
+            tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: #666;">No submissions yet</td></tr>';
+        }
+
+        // Available Tests (Student)
+        async function loadAvailableTests() {
+            const result = await window.api.getTests();
+            const tests = result.data || [];
+            
+            // Auto-fill student name from logged in user
+            const nameField = document.getElementById('startStudentName');
+            if (nameField && currentUserName) {
+                nameField.value = currentUserName;
+            }
+            
+            const tbody = document.getElementById('availableTestsBody');
+            if (tests.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: #666;">No tests available</td></tr>';
+                return;
+            }
+            
+            tbody.innerHTML = tests.map(t => `
+                <tr>
+                    <td>${t.id}</td>
+                    <td>${t.title}</td>
+                    <td>${t.description || '-'}</td>
+                    <td>${t.questionCount || 0}</td>
+                    <td>${t.duration} min</td>
+                    <td><button class="btn btn-sm btn-success" onclick="showStartTestForm(${t.id})">View</button></td>
+                </tr>
+            `).join('');
+        }
+
+        function showStartTestForm(testId) {
+            document.getElementById('startTestId').value = testId;
+            alert('Enter the Access Code below and click Start Test');
+        }
+
+        async function startTest() {
+            const testId = document.getElementById('startTestId').value;
+            const accessCode = document.getElementById('startAccessCode').value;
+            const studentName = document.getElementById('startStudentName').value || currentUserName;
+            
+            if (!testId || !accessCode) {
+                alert('Please enter Test ID and Access Code');
+                return;
+            }
+            
+            try {
+                const result = await window.api.startTest({
+                    testId: parseInt(testId),
+                    accessCode: accessCode,
+                    studentId: currentUserId,
+                    studentName: studentName
+                });
+                
+                if (result.success) {
+                    currentTestSessionId = result.data.id;
+                    
+                    testDuration = result.data.duration || 60;
+                    timeLeft = testDuration * 60;
+                    
+                    document.getElementById('testTimer').textContent = formatTime(timeLeft);
+                    startTestTimer();
+                    
+                    var titleEl = document.getElementById('testQuestionTitle');
+                    if (titleEl && result.data.testTitle) titleEl.textContent = result.data.testTitle;
+                    
+                    var questions = result.data.questions;
+                    if (questions && questions.length > 0) {
+                        currentQuestions = questions;
+                        currentQuestionIndex = 0;
+                        showQuestion(questions[0]);
+                    }
+                    
+                    // Hide all pages
+                    document.querySelectorAll('.page').forEach(p => {
+                        p.style.display = 'none';
+                        p.classList.remove('active');
+                    });
+                    
+                    // Show take test page in same window
+                    document.getElementById('page-take-test').style.display = 'block';
+                    document.getElementById('page-take-test').classList.add('active');
+                } else {
+                    alert('Error: ' + result.message);
+                }
+            } catch(e) {
+                alert('Error starting test: ' + e.message);
+            }
+        }
+
+        async function loadTestQuestions(questions) {
+            if (!questions || questions.length === 0) {
+                alert('No questions found');
+                return;
+            }
+            currentQuestions = questions;
+            currentQuestionIndex = 0;
+            showQuestion(questions[0]);
+        }
+
+        /* Initialize Monaco Editor */
+        var editor = null;
+        
+        function initMonaco() {
+            require.config({ paths: { vs: 'https://cdn.jsdelivr.net/npm/monaco-editor@0.45.0/min/vs' } });
+            require(['vs/editor/editor.main'], function() {
+                editor = monaco.editor.create(document.getElementById('codeEditorContainer'), {
+                    value: getDefaultTemplate('PYTHON'),
+                    language: 'python',
+                    theme: 'vs-dark',
+                    fontSize: 14,
+                    automaticLayout: true,
+                    minimap: { enabled: false },
+                    lineNumbers: 'on',
+                    roundedSelection: true,
+                    scrollBeyondLastLine: false,
+                    wordWrap: 'on',
+                    tabSize: 4,
+                    insertSpaces: true,
+                    autoClosingBrackets: 'always',
+                    autoClosingQuotes: 'always',
+                    formatOnPaste: true,
+                    formatOnType: true
+                });
+            });
+        }
+
+        function getDefaultTemplate(lang) {
+            const templates = {
+                'PYTHON': `a, b = map(int, input().split())\nprint(a + b)`,
+                'JAVA': `import java.util.*;\n\npublic class Main {\n    public static void main(String[] args) {\n        Scanner sc = new Scanner(System.in);\n        int a = sc.nextInt();\n        int b = sc.nextInt();\n        System.out.println(a + b);\n    }\n}`,
+                'CPP': `#include <bits/stdc++.h>\nusing namespace std;\n\nint main() {\n    int a, b;\n    cin >> a >> b;\n    cout << a + b;\n    return 0;\n}`
+            };
+            return templates[lang] || templates['PYTHON'];
+        }
+
+        function changeLanguage(lang) {
+            const langMap = { 'PYTHON': 'python', 'JAVA': 'java', 'CPP': 'cpp' };
+            
+            if (editor && editor.getModel()) {
+                const currentCode = editor.getValue().trim();
+                const template = getDefaultTemplate(lang);
+                
+                // Change syntax highlighting
+                monaco.editor.setModelLanguage(editor.getModel(), langMap[lang]);
+                
+                // Only set template if empty or has old template markers
+                if (!currentCode || currentCode.startsWith('# Write your') || 
+                    currentCode.includes('public class Main') ||
+                    currentCode.includes('#include <bits/stdc++.h>')) {
+                    editor.setValue(template);
+                }
+                
+                // Save language choice
+                if (currentQuestionId) {
+                    localStorage.setItem('selectedLanguage_' + currentQuestionId, lang);
+                }
+            }
+        }
+
+        function getEditorCode() {
+            return editor ? editor.getValue() : '';
+        }
+
+        /* Auto-save functionality */
+        setInterval(function() {
+            if (editor && currentQuestionId) {
+                localStorage.setItem('code_' + currentQuestionId, getEditorCode());
+            }
+        }, 5000); // Save every 5 seconds
+
+        function restoreCode(questionId) {
+            const saved = localStorage.getItem('code_' + questionId);
+            if (saved && editor) {
+                editor.setValue(saved);
+            }
+        }
+
+        function showQuestion(question) {
+            document.getElementById('qtTitle').textContent = question.title;
+            document.getElementById('qtDescription').textContent = question.description || 'No description';
+            document.getElementById('qtSampleInput').textContent = question.sampleInput || '-';
+            document.getElementById('qtSampleOutput').textContent = question.sampleOutput || '-';
+            currentQuestionId = question.id;
+            
+            if (editor) {
+                restoreCode(question.id);
+                
+                // Restore saved language or default to PYTHON
+                const savedLang = localStorage.getItem('selectedLanguage_' + question.id) || 'PYTHON';
+                document.getElementById('languageSelect').value = savedLang;
+                
+                const langMap = { 'PYTHON': 'python', 'JAVA': 'java', 'CPP': 'cpp' };
+                monaco.editor.setModelLanguage(editor.getModel(), langMap[savedLang]);
+            }
+        }
+        
+        function prevQuestion() {
+            if (currentQuestions && currentQuestionIndex > 0) {
+                currentQuestionIndex--;
+                showQuestion(currentQuestions[currentQuestionIndex]);
+            } else {
+                alert('This is the first question');
+            }
+        }
+        
+        function nextQuestion() {
+            if (currentQuestions && currentQuestionIndex < currentQuestions.length - 1) {
+                currentQuestionIndex++;
+                showQuestion(currentQuestions[currentQuestionIndex]);
+            } else {
+                alert('This is the last question');
+            }
+        }
+
+        // OLD - Kept for compatibility
+        async function startTestOriginal(questionId) {
+            currentQuestionId = questionId;
+            const result = await window.api.getQuestion(questionId);
+            const question = result.data;
+            
+            if (!question) {
+                alert('Question not found');
+                return;
+            }
+            
+            document.getElementById('testQuestionTitle').textContent = question.title;
+            document.getElementById('qtTitle').textContent = question.title;
+            document.getElementById('qtDifficulty').textContent = question.difficulty;
+            document.getElementById('qtDifficulty').className = 'badge badge-' + question.difficulty.toLowerCase();
+            document.getElementById('qtDescription').textContent = question.description || '-';
+            document.getElementById('qtSampleInput').textContent = question.sampleInput || '-';
+            document.getElementById('qtSampleOutput').textContent = question.sampleOutput || '-';
+            document.getElementById('codeEditor').value = '';
+            document.getElementById('testResult').style.display = 'none';
+            
+            startTestTimer();
+            
+            showPage('take-test');
+        }
+        
+        function startTestTimer() {
+            if (timerInterval) clearInterval(timerInterval);
+            timerInterval = setInterval(() => {
+                timeLeft--;
+                document.getElementById('testTimer').textContent = formatTime(timeLeft);
+                if (timeLeft <= 0) {
+                    clearInterval(timerInterval);
+                    alert('Time up! Test will be submitted automatically...');
+                    autoSubmitTest();
+                }
+            }, 1000);
+        }
+        
+        async function autoSubmitTest() {
+            if (currentTestSessionId) {
+                try {
+                    const result = await window.api.submitTest(currentTestSessionId);
+                    if (result.success) {
+                        alert('Test submitted automatically! Score: ' + (result.data.score || 0));
+                        showPage('student-home');
+                    }
+                } catch(e) {
+                    alert('Error auto-submitting: ' + e.message);
+                }
+            } else {
+                submitTest();
+            }
+        }
+
+        function formatTime(seconds) {
+            const mins = Math.floor(seconds / 60);
+            const secs = seconds % 60;
+            return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+        }
+
+        async function submitTest() {
+            if (timerInterval) clearInterval(timerInterval);
+            
+            const code = getEditorCode();
+            if (!code.trim()) {
+                alert('Please write your code first');
+                return;
+            }
+            
+            const language = document.getElementById('languageSelect').value;
+            
+            const result = await window.api.createSubmission({
+                questionId: currentQuestionId,
+                language: language,
+                sourceCode: code
+            }, currentUserId, currentTestSessionId);
+            
+            const resultDiv = document.getElementById('testResult');
+            resultDiv.style.display = 'block';
+            
+            if (result.data) {
+                const data = result.data;
+                const status = data.status;
+                const isSuccess = status === 'PASSED';
+                
+                resultDiv.innerHTML = `
+                    <div class="result-message ${isSuccess ? 'result-success' : 'result-failed'}">
+                        <h3>${status}</h3>
+                        <p>Score: ${data.score}%</p>
+                        <p>Passed: ${data.passedCount}/${data.totalCount} test cases</p>
+                        ${data.executionTime ? `<p>Execution Time: ${data.executionTime}ms</p>` : ''}
+                        ${data.errorMessage ? `<p>Error: ${data.errorMessage}</p>` : ''}
+                    </div>
+                `;
+                
+                // Update score display in real-time
+                document.getElementById('scoreDisplay').textContent = 'Score: ' + data.score + '%';
+                document.getElementById('scoreDisplay').style.background = isSuccess ? '#28a745' : '#dc3545';
+            } else {
+                resultDiv.innerHTML = `<div class="result-message result-failed"><h3>Error</h3><p>${result.message}</p></div>`;
+            }
+        }
+
+        // My Submissions (Student)
+        async function loadMySubmissions() {
+            const result = await window.api.getSubmissionsByUser(currentUserId);
+            const submissions = result.data || [];
+            
+            const tbody = document.getElementById('mySubmissionsBody');
+            if (submissions.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: #666;">No submissions yet</td></tr>';
+                return;
+            }
+            
+            tbody.innerHTML = submissions.map(s => `
+                <tr>
+                    <td>${s.id}</td>
+                    <td>Question ${s.questionId}</td>
+                    <td><span class="badge badge-${s.status.toLowerCase()}">${s.status}</span></td>
+                    <td>${s.score}%</td>
+                    <td>${formatDate(s.createdAt)}</td>
+                </tr>
+            `).join('');
+        }
+
+        // Initialize
+        console.log('Assessment Platform loaded');
+    </script>
+</body>
+</html>
